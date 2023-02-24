@@ -1,4 +1,5 @@
 
+PBF=guetersloh-latest.osm.pbf
 VOLUMENAME=routecompare_osrmAdata
 TARGETNAME=latest
 PROFILEDIR=osrmAprofiles
@@ -6,7 +7,7 @@ PROFILE=car.lua
 
 docker run -t \
 	-v "${VOLUMENAME}:/data" \
-	-v "${PWD}/guetersloh-latest.osm.pbf:/data/${TARGETNAME}.pbf" \
+	-v "${PWD}/${PBF}:/data/${TARGETNAME}.pbf" \
 	-v "${PWD}/${PROFILEDIR}:/profile" \
 	osrm/osrm-backend \
 		osrm-extract \
@@ -30,7 +31,7 @@ PROFILE=car.lua
 
 docker run -t \
 	-v "${VOLUMENAME}:/data" \
-	-v "${PWD}/guetersloh-latest.osm.pbf:/data/${TARGETNAME}.pbf" \
+	-v "${PWD}/${PBF}:/data/${TARGETNAME}.pbf" \
 	-v "${PWD}/${PROFILEDIR}:/profile" \
 	osrm/osrm-backend \
 		osrm-extract \
