@@ -430,6 +430,19 @@ function WayHandlers.penalties(profile,way,result,data)
   end
 end
 
+function WayHandlers.regelgeschwindigkeitsabsenkung(way) 
+  local mtype = way:get_value_by_key('maxspeed:type') 
+  local ztype = way:get_value_by_key('zone:traffic');
+
+  if mtype and mtype == 'DE:urban' then
+    return 1
+  end
+  if ztype and ztype == 'DE:urban' then
+    return 1
+  end
+  return 0
+end
+ 
 -- maxspeed and advisory maxspeed
 function WayHandlers.maxspeed(profile,way,result,data)
   local keys = Sequence {  'maxspeed:advisory', 'maxspeed', 'source:maxspeed', 'maxspeed:type' }
@@ -437,8 +450,7 @@ function WayHandlers.maxspeed(profile,way,result,data)
   forward = WayHandlers.parse_maxspeed(forward,profile)
   backward = WayHandlers.parse_maxspeed(backward,profile)
 
-  local mtype = way:get_value_by_key('maxspeed:type') 
-  if mtype and mtype == 'DE:urban' then
+  if WayHandlers.regelgeschwindigkeitsabsenkung(way) then
     if forward and forward > 30 then
       forward=30
     end
