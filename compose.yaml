@@ -14,7 +14,20 @@ services:
     ports:
       - "8002:5000"
     command: osrm-routed --algorithm mld /data/latest.osrm
- 
+
+  frontend:
+    image: nginx
+    depends_on:
+      - osrmA
+      - osrmB
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/html:/etc/nginx/html/
+    ports:
+     - "8080:80"
+    environment:
+     - NGINX_HOST=foobar.com
+     - NGINX_PORT=80
 volumes:
   osrmAdata:
   osrmBdata:
