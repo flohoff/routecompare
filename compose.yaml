@@ -1,0 +1,20 @@
+services:
+  osrmA:
+    image: osrm/osrm-backend
+    volumes:
+      - osrmAdata:/data
+    ports:
+      - "8001:5000"
+    command: osrm-routed --algorithm mld /data/latest.osrm
+
+  osrmB:
+    image: osrm/osrm-backend
+    volumes:
+      - osrmBdata:/data
+    ports:
+      - "8002:5000"
+    command: osrm-routed --algorithm mld /data/latest.osrm
+ 
+volumes:
+  osrmAdata:
+  osrmBdata:

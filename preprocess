@@ -1,0 +1,49 @@
+
+VOLUMENAME=routecompare_osrmAdata
+TARGETNAME=latest
+PROFILEDIR=osrmAprofiles
+PROFILE=car.lua
+
+docker run -t \
+	-v "${VOLUMENAME}:/data" \
+	-v "${PWD}/guetersloh-latest.osm.pbf:/data/${TARGETNAME}.pbf" \
+	-v "${PWD}/${PROFILEDIR}:/profile" \
+	osrm/osrm-backend \
+		osrm-extract \
+			-p /profile/${PROFILE} \
+			/data/${TARGETNAME}.pbf
+
+docker run -t \
+	-v "${VOLUMENAME}:/data" \
+	osrm/osrm-backend \
+		osrm-partition /data/${TARGETNAME}.osrm
+
+docker run -t \
+	-v "${VOLUMENAME}:/data" \
+	osrm/osrm-backend \
+		osrm-customize /data/${TARGETNAME}.osrm
+
+VOLUMENAME=routecompare_osrmBdata
+TARGETNAME=latest
+PROFILEDIR=osrmBprofiles
+PROFILE=car.lua
+
+docker run -t \
+	-v "${VOLUMENAME}:/data" \
+	-v "${PWD}/guetersloh-latest.osm.pbf:/data/${TARGETNAME}.pbf" \
+	-v "${PWD}/${PROFILEDIR}:/profile" \
+	osrm/osrm-backend \
+		osrm-extract \
+			-p /profile/${PROFILE} \
+			/data/${TARGETNAME}.pbf
+
+docker run -t \
+	-v "${VOLUMENAME}:/data" \
+	osrm/osrm-backend \
+		osrm-partition /data/${TARGETNAME}.osrm
+
+docker run -t \
+	-v "${VOLUMENAME}:/data" \
+	osrm/osrm-backend \
+		osrm-customize /data/${TARGETNAME}.osrm
+
