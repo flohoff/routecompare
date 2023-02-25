@@ -5,28 +5,28 @@ PROFILEA=$2
 PROFILEB=$3
 
 preparesingle() {
-	PBF=$1
-	PROFILE=$2
+	PBF=$(readlink -f $1)
+	PROFILE=$(readlink -f $2)
 	VOLUMENAME=$3
 
 	PROFILEDIR=$(dirname ${PROFILE})
 	PROFILENAME=$(basename ${PROFILE})
 
-	docker run -t \
+	docker run --rm -t \
 		-v "${VOLUMENAME}:/data" \
-		-v "${PWD}/${PBF}:/data/latest.pbf" \
-		-v "${PWD}/${PROFILEDIR}:/profile" \
+		-v "${PBF}:/data/latest.pbf" \
+		-v "${PROFILEDIR}:/profile" \
 		osrm/osrm-backend \
 			osrm-extract \
 				-p /profile/${PROFILENAME} \
 				/data/latest.pbf
 
-	docker run -t \
+	docker run --rm -t \
 		-v "${VOLUMENAME}:/data" \
 		osrm/osrm-backend \
 			osrm-partition /data/latest.osrm
 
-	docker run -t \
+	docker run --rm -t \
 		-v "${VOLUMENAME}:/data" \
 		osrm/osrm-backend \
 			osrm-customize /data/latest.osrm

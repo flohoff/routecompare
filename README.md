@@ -22,8 +22,8 @@ Installation
 Fetch yourself an PBF file of OSM data an run "prepare" 
 
 	./prepare guetersloh-latest.osm.pbf \
-		profiles/osrm-default \
-		profiles/osrm-clampto30-zone-de-urban
+		profiles/osrm-default/car.lua \
+		profiles/osrm-clampto30-zone-de-urban/car.lua
 
 which will create 2 Docker volumes containing the different data.
 
