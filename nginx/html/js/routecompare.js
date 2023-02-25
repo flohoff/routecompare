@@ -1,28 +1,3 @@
-//function oneachfeature(feature, layer) {
-//	if (feature.properties && feature.properties.popupContent) {
-//		popupContent = feature.properties.popupContent;
-//		layer.bindPopup(popupContent);
-//	}
-//}
-//
-//function featurestyle(feature) {
-//	console.log(feature.properties);
-//	return feature.properties.style;
-//}
-//
-//function refreshoverlay(map, geojsonLayer) {
-//	var bbox=map.getBounds();
-//
-//	var url="/cgi-bin/geojson?bbox="
-//		+ bbox.getWest() + "," 
-//		+ bbox.getNorth() + ","
-//		+ bbox.getEast() + ","
-//		+ bbox.getSouth() + ","
-//		+ map.getZoom();
-//
-//	geojsonLayer.refresh(url);
-//}
-//
 var map;
 var popup = L.popup();
 
@@ -30,10 +5,6 @@ var mStart;
 var pStart;
 var mDestination;
 var pDestination;
-
-function onEachFeature(feature, layer) {
-	console.log(feature);
-}
 
 var styleA = {
 	"color": "#00aa00",
@@ -55,7 +26,6 @@ function routeAdd(data, style) {
 	json=data.routes[0].geometry;
 
 	return L.geoJSON(json, {
-		onEachFeature: onEachFeature,
 		style: style
 	}).addTo(map);
 }
@@ -124,25 +94,4 @@ function init() {
 
 	map.on('click', onMapClick);	
 
-//	if (url("?rid")) {
-//		$.getJSON("/cgi-bin/geojson" + location.search, function(data) {
-//			lay=L.geoJson(data, {
-//				style: featurestyle,
-//				onEachFeature: oneachfeature,
-//			});
-//			lay.addTo(map);
-//			map.fitBounds(lay.getBounds());
-//		});
-//	} else {
-//		geojsonLayer = L.geoJson.ajax("", {
-//			style: featurestyle,
-//			onEachFeature: oneachfeature });
-//
-//		//map.on('zoomend', function() { refreshoverlay(map, geojsonLayer); });
-//		//map.on('dragend', function() { refreshoverlay(map, geojsonLayer); });
-//
-//		map.addLayer(geojsonLayer);
-//
-//		refreshoverlay(map, geojsonLayer);
-//	}
 }
