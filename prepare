@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PBF=$1
+PROFILEA=$2
+PROFILEB=$3
+
+preparesingle() {
+	PBF=$1
+	PROFILE=$2
+	VOLUMENAME=$3
+
+	PROFILEDIR=$(dirname ${PROFILE})
+	PROFILENAME=$(basename ${PROFILE})
+
+	docker run -t \
+		-v "${VOLUMENAME}:/data" \
+		-v "${PWD}/${PBF}:/data/latest.pbf" \
+		-v "${PWD}/${PROFILEDIR}:/profile" \
+		osrm/osrm-backend \
+			osrm-extract \
+				-p /profile/${PROFILENAME} \
+				/data/latest.pbf
+
+	docker run -t \
+		-v "${VOLUMENAME}:/data" \
+		osrm/osrm-backend \
+			osrm-partition /data/latest.osrm
+
+	docker run -t \
+		-v "${VOLUMENAME}:/data" \
+		osrm/osrm-backend \
+			osrm-customize /data/latest.osrm
+}
+
+docker volume rm routecompare_osrmAdata
+docker volume rm routecompare_osrmBdata
+
+preparesingle ${PBF} ${PROFILEA} routecompare_osrmAdata
+preparesingle ${PBF} ${PROFILEB} routecompare_osrmBdata

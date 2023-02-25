@@ -19,13 +19,11 @@ or
 Installation
 ============
 
-Fetch yourself an PBF file of OSM data an run "preprocess" which will create 2 
-Docker volumes named 
+Fetch yourself an PBF file of OSM data an run "prepare" 
 
-	local     routecompare_osrmAdata
-	local     routecompare_osrmBdata
+	./preprocess guetersloh-latest.osm.pbf osrmAprofiles/car.lua osrmBprofiles/car.lua
 
-with the corresponding OSRM files in it.
+which will create 2 Docker volumes containing the different data.
 
 Then run
 
