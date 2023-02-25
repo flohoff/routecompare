@@ -21,7 +21,7 @@ Installation
 
 Fetch yourself an PBF file of OSM data an run "prepare" 
 
-	./preprocess guetersloh-latest.osm.pbf \
+	./prepare guetersloh-latest.osm.pbf \
 		profiles/osrm-default \
 		profiles/osrm-clampto30-zone-de-urban
 
