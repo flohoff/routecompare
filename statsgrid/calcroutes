@@ -1,0 +1,56 @@
+#!/usr/bin/perl 
+
+# http://localhost:8080/osrmb/route/v1/car/8.351497650146486,51.89863463469904;8.36686134338379,51.916691123199826?geometries=geojson
+
+use strict;
+no warnings "experimental::signatures";
+use feature 'signatures';
+use LWP::UserAgent;
+use File::Slurp qw/read_file/;
+use Data::Dumper;
+use JSON;
+
+
+my $uribase="http://localhost:8080";
+my $waypointsfile=$ARGV[0];
+my $numroutes=$ARGV[1];
+
+sub calcroute($ua, $uribase, $osrmi, $profile, $lng1, $lat1, $lng2, $lat2) {
+
+	my $uri=sprintf("%s/%s/route/v1/%s/%f,%f;%f,%f?geometries=geojson",
+		$uribase, $osrmi, $profile,
+		$lng1, $lat1,
+		$lng2, $lat2);
+
+	my $response=$ua->get($uri);
+
+	if (!$response->is_success) {
+		die("Failed to get $uri");
+	}
+
+	my $j=from_json($response->decoded_content);
+	my $geojson=$j->{routes}[0]{geometry};
+
+	$geojson->{properties}{instance}=$osrmi;
+	$geojson->{properties}{profile}=$profile;
+
+	return $j;
+}
+
+my @points=
+	map { /\(([\d\.]+)\s([\d\.]+)\)/; [($1, $2)]; }
+	map { chomp(); s/^ //; $_; }
+	grep { /^\sPOINT/ } read_file($waypointsfile);
+
+my $ua=LWP::UserAgent->new(timeout => 2);
+
+for(my $i=0;$i<$numroutes // 5000;$i++) {
+	my $p1=$points[rand scalar @points];
+	my $p2=$points[rand scalar @points];
+
+	my $a=calcroute($ua, $uribase, "osrma", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
+	my $b=calcroute($ua, $uribase, "osrmb", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
+
+	print to_json($a->{routes}[0]{geometry}) . "\n";
+	print to_json($b->{routes}[0]{geometry}) . "\n";
+}

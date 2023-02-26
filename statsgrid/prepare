@@ -1,0 +1,73 @@
+#!/bin/bash
+
+PBF=$(readlink -f $1)
+NUMROUTES=$2
+
+PW=$(diceware -n3)
+NETWORK=dbnetwork
+IMG=postgis/postgis:15-3.3
+
+docker network create ${NETWORK}
+docker stop routestatsdb
+
+echo "*** Starting database server"
+docker run \
+	-d \
+	--rm \
+	--name "routestatsdb" \
+	--network ${NETWORK} \
+	-e POSTGRES_PASSWORD=${PW} \
+	${IMG}
+
+sleep 2
+
+echo "*** Createing database with extensions"
+docker run \
+	--rm \
+	--network ${NETWORK} \
+	-e PGPASSWORD=${PW} \
+	${IMG} \
+	/bin/bash -c "createdb -h routestatsdb -U postgres osm && psql -h routestatsdb -U postgres osm -c 'create extension postgis;' && psql -h routestatsdb -U postgres osm -c 'create extension hstore;'"
+
+echo "*** Importing pbf"
+docker run \
+	--rm \
+	-v ${PBF}:/pbf/latest.pbf \
+	--network ${NETWORK} \
+	-e PGPASSWORD=${PW} \
+	${IMG} \
+	/bin/bash -c "apt-get update && apt-get -fy install osm2pgsql && osm2pgsql --hstore --create --latlong --slim --cache 6000 -H routestatsdb -d osm -U postgres /pbf/latest.pbf"
+
+echo "*** Exporting waypoints"
+docker run \
+	--rm \
+	--network ${NETWORK} \
+	-v $(readlink -f .):/data \
+	-e PGPASSWORD=${PW} \
+	${IMG} \
+	psql -h routestatsdb -U postgres osm -f /data/sql/exportpoints.sql \
+	>output/waypoints
+
+echo "*** Calculating routes"
+./calcroutes output/waypoints $NUMROUTES >output/routes
+
+echo "*** Importing and preprocessing routes"
+docker run \
+	--rm \
+	--network ${NETWORK} \
+	-v $(readlink -f .):/data \
+	-e PGPASSWORD=${PW} \
+	${IMG} \
+	psql -h routestatsdb -U postgres osm -f /data/sql/importroutes.sql
+
+echo "*** Exporting result"
+docker run \
+	--rm \
+	--network ${NETWORK} \
+	-v $(readlink -f .):/data \
+	-e PGPASSWORD=${PW} \
+	${IMG} \
+	pg_dump  -h routestatsdb -U postgres osm -t hexagon -f /data/output/hexagon.sql
+
+echo "*** Stopping database server"
+docker stop routestatsdb

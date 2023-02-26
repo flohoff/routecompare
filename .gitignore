@@ -1,3 +1,4 @@
 .*
+statsgrid/output
 !.gitignore
 *.pbf
