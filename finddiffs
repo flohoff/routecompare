@@ -12,11 +12,11 @@ package Route;
 	}
 
 	sub duration($self) {
-		return $self->{duration};
+		return $self->{duration}*1;
 	}
 
 	sub distance($self) {
-		return $self->{distance};
+		return $self->{distance}*1;
 	}
 1;
 
@@ -90,8 +90,12 @@ while(42) {
 	my $a=calcroute($ua, $uribase, "osrma", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
 	my $b=calcroute($ua, $uribase, "osrmb", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
 
-	if ($a->distance() ne $b->distance() or $a->duration() ne $b->duration) {
+	if ($a->distance() ne $b->distance() && $a->duration() ne $b->duration) {
+
 		printf("http://localhost:8080/?route=%f,%f,%f,%f\n",
-				$p1->[0], $p1->[1], $p2->[0], $p2->[1])
+				$p1->[0], $p1->[1], $p2->[0], $p2->[1]);
+
+		printf("\tDistance diff: %f Duration diff: %f\n", 
+			$b->distance()-$a->distance(), $b->duration-$a->duration);
 	}
 }
