@@ -1,0 +1,97 @@
+#!/usr/bin/perl 
+
+package Route;
+	use strict;
+	no warnings "experimental::signatures";
+	use feature 'signatures';
+	use Data::Dumper;
+
+	sub new($class, $route) {
+		bless $route, $class;
+		return $route;
+	}
+
+	sub duration($self) {
+		return $self->{duration};
+	}
+
+	sub distance($self) {
+		return $self->{distance};
+	}
+1;
+
+# http://localhost:8080/osrmb/route/v1/car/8.351497650146486,51.89863463469904;8.36686134338379,51.916691123199826?geometries=geojson
+
+use strict;
+no warnings "experimental::signatures";
+use feature 'signatures';
+use LWP::UserAgent;
+use FindBin qw($RealBin $Bin);
+use File::Slurp qw/read_file/;
+use Getopt::Long::Descriptive;
+use Data::Dumper;
+use JSON;
+
+
+my $uribase="http://localhost:8080";
+my $waypointsfile=$ARGV[0];
+my $numroutes=$ARGV[1];
+
+sub calcroute($ua, $uribase, $osrmi, $profile, $lng1, $lat1, $lng2, $lat2) {
+
+	my $uri=sprintf("%s/%s/route/v1/%s/%f,%f;%f,%f?geometries=geojson&overview=full&annotations=true&steps=true&alternatives=true",
+		$uribase, $osrmi, $profile,
+		$lng1, $lat1,
+		$lng2, $lat2);
+
+	my $response=$ua->get($uri);
+
+	if (!$response->is_success) {
+		die("Failed to get $uri");
+	}
+
+	my $j=from_json($response->decoded_content);
+
+	return new Route($j->{routes}[0]);
+
+	my $geojson=$j->{routes}[0]{geometry};
+
+	$geojson->{properties}{instance}=$osrmi;
+	$geojson->{properties}{profile}=$profile;
+
+	return $j;
+}
+
+my ($opt, $usage) = describe_options(
+	'$Bin %o <some-arg>',
+	[ 'minx=s',	"Min X" ],
+	[ 'maxx=s',	"Max X"],
+	[ 'miny=s',	"Min Y" ],
+	[ 'maxy=s',	"Max Y" ],
+	[],
+	[ 'help',	"print usage message and exit", { shortcircuit => 1 } ],
+);
+
+print($usage->text), exit if $opt->help;
+
+sub genpoint($opt) {
+	return [
+		$opt->minx+rand($opt->maxx-$opt->minx),
+		$opt->miny+rand($opt->maxy-$opt->miny)
+	];
+}
+
+my $ua=LWP::UserAgent->new(timeout => 2);
+
+while(42) {
+	my $p1=genpoint($opt);
+	my $p2=genpoint($opt);
+
+	my $a=calcroute($ua, $uribase, "osrma", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
+	my $b=calcroute($ua, $uribase, "osrmb", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
+
+	if ($a->distance() ne $b->distance() or $a->duration() ne $b->duration) {
+		printf("http://localhost:8080/?route=%f,%f,%f,%f\n",
+				$p1->[0], $p1->[1], $p2->[0], $p2->[1])
+	}
+}

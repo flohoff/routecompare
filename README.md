@@ -43,3 +43,15 @@ Click on the map for "Start" and "Endpoint". You'll see routes coming
 up where the green one is result from OSRM A and red is from OSRM B
 
 This is live calculated and you may move the marker around as you like.
+
+
+finddiffs
+=========
+
+To brute force finding differences in routing use finddiffs
+
+    ./finddiffs  --minx 8.12 --maxx 8.57 --maxy 52.12 --miny 51.72
+
+It will randomly generated routes and print a link to to stdout
+if the 2 routes differ by duration/distance.
+

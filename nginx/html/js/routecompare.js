@@ -94,4 +94,19 @@ function init() {
 
 	map.on('click', onMapClick);	
 
+        if (url("?route")) {
+                const re = /route=([^,]*),([^,]*),([^,]*),([^,]*)/;
+                const match=re.exec(location.search);
+
+		var s={
+			lng: match[1],
+			lat: match[2]
+		};
+		var e={
+			lng: match[3],
+			lat: match[4]
+		};
+
+		routeCalc(s,e);
+	}
 }
