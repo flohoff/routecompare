@@ -30,6 +30,35 @@ function routeAdd(data, style) {
 	}).addTo(map);
 }
 
+function sendRemoteEditCommand(url, callback) {
+	var iframe = $("<iframe>");
+	var timeoutId = setTimeout(function () {
+		iframe.remove();
+	}, 5000);
+
+	iframe
+		.hide()
+		.appendTo("body")
+		.attr("src", url)
+		.on("load", function () {
+			clearTimeout(timeoutId);
+			iframe.remove();
+			if (callback) callback();
+		});
+}
+
+function remoteEdit() {
+	var bbox=map.getBounds();
+	var remoteEditHost = "http://127.0.0.1:8111";
+	var query = {
+		left: bbox.getWest() - 0.0001,
+		top: bbox.getNorth() + 0.0001,
+		right: bbox.getEast() + 0.0001,
+		bottom: bbox.getSouth() - 0.0001
+	};
+
+	sendRemoteEditCommand(remoteEditHost + "/load_and_zoom?" + $.param(query));
+}
 
 var layerA;
 var layerB;
@@ -39,14 +68,14 @@ function routeCalc(s, e) {
 		return;
 	}
 
-	$.getJSON("/osrma/route/v1/car/" + s.lng + "," + s.lat + ";" + e.lng + "," + e.lat + "?geometries=geojson", function(data) {
+	$.getJSON("/osrma/route/v1/car/" + s.lng + "," + s.lat + ";" + e.lng + "," + e.lat + "?geometries=geojson&overview=full&annotations=true&steps=true&alternatives=true", function(data) {
 		if (layerA) {
 			map.removeLayer(layerA);
 		}
 		layerA=routeAdd(data, styleA);
 	});
 
-	$.getJSON("/osrmb/route/v1/car/" + s.lng + "," + s.lat + ";" + e.lng + "," + e.lat + "?geometries=geojson", function(data) {
+	$.getJSON("/osrmb/route/v1/car/" + s.lng + "," + s.lat + ";" + e.lng + "," + e.lat + "?geometries=geojson&overview=full&annotations=true&steps=true&alternatives=true", function(data) {
 		if (layerB) {
 			map.removeLayer(layerB);
 		}
@@ -108,5 +137,6 @@ function init() {
 		};
 
 		routeCalc(s,e);
+		map.fitBounds(layerB.getBounds());
 	}
 }
