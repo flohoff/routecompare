@@ -63,7 +63,7 @@ function remoteEdit() {
 var layerA;
 var layerB;
 
-function routeCalc(s, e) {
+function routeCalc(s, e, zoomtoroute) {
 	if (!s || !e) {
 		return;
 	}
@@ -80,6 +80,9 @@ function routeCalc(s, e) {
 			map.removeLayer(layerB);
 		}
 		layerB=routeAdd(data, styleB);
+		if (zoomtoroute) {
+			map.fitBounds(layerB.getBounds());
+		}
 	});
 }
 
@@ -105,7 +108,7 @@ function onMapClick(e) {
 			routeCalc(pStart, pDestination);
 		}, 100));
 
-		routeCalc(pStart, pDestination);
+		routeCalc(pStart, pDestination, 0);
 	}
 }
 
@@ -136,7 +139,6 @@ function init() {
 			lat: match[4]
 		};
 
-		routeCalc(s,e);
-		map.fitBounds(layerB.getBounds());
+		routeCalc(s,e, 1);
 	}
 }
