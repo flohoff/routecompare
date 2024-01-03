@@ -29,7 +29,7 @@ which will create 2 Docker volumes containing the different data.
 
 Then run
 
-	docker-compose -f compose.yml up
+	docker-compose -f compose.yaml up
 
 
 Usage
