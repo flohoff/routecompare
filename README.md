@@ -55,3 +55,8 @@ To brute force finding differences in routing use finddiffs
 It will randomly generated routes and print a link to to stdout
 if the 2 routes differ by duration/distance.
 
+For finding the bounding box of your data you may use `osmium`
+
+    osmium fileinfo -e -g data.bbox nrw.pbf
+    (5.843747,49.9247862,9.68153,52.7065863)
+
