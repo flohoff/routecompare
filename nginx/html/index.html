@@ -15,8 +15,14 @@
 	 <script src="js/routecompare.js"></script>
 	</head>
 	<body>
-		<a href="#" onclick="remoteEdit(this)">Edit remote control</a>
-		<div id="map"></div>
+		<header class="header">
+			<a href="#" onclick="remoteEdit(this)">Edit remote control</a>
+			<div id="rinfoa"></div>
+			<div id="rinfob"></div>
+		</header>
+		<div id="content">
+			<div class="map" id="map"></div>
+		</div>
 		<script>
 			init();
 		</script>

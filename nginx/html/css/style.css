@@ -1,1 +1,19 @@
-#map { height: 98%; }
+
+
+#content {
+	position: absolute;
+	top: 80px;
+	bottom: 0;
+	width: 100%;
+}
+
+.map {
+	height: 100%;
+	overflow: hidden;
+	position: relative;
+}
+
+.header {
+	height: 80px;
+	position: relative;
+}

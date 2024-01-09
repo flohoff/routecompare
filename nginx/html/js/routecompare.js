@@ -63,6 +63,13 @@ function remoteEdit() {
 var layerA;
 var layerB;
 
+function routeinfo(data, where) {
+
+	route=data.routes[0];
+
+	$(where).html("Duration <b>" + route.duration + "</b>" + " Weight <b>" + route.weight + "</b>");
+}
+
 function routeCalc(s, e, zoomtoroute) {
 	if (!s || !e) {
 		return;
@@ -73,6 +80,7 @@ function routeCalc(s, e, zoomtoroute) {
 			map.removeLayer(layerA);
 		}
 		layerA=routeAdd(data, styleA);
+		routeinfo(data, "#rinfoa");
 	});
 
 	$.getJSON("/osrmb/route/v1/car/" + s.lng + "," + s.lat + ";" + e.lng + "," + e.lat + "?geometries=geojson&overview=full&annotations=true&steps=true&alternatives=true", function(data) {
@@ -80,6 +88,8 @@ function routeCalc(s, e, zoomtoroute) {
 			map.removeLayer(layerB);
 		}
 		layerB=routeAdd(data, styleB);
+		routeinfo(data, "#rinfob");
+
 		if (zoomtoroute) {
 			map.fitBounds(layerB.getBounds());
 		}
