@@ -1,6 +1,37 @@
 #!/usr/bin/perl 
 
-package Route;
+
+package Route::Waypoint::Location;
+	use strict;
+	no warnings "experimental::signatures";
+	use feature 'signatures';
+
+	sub new($class, $location) {
+		my $self={
+			lon => $location->[0],
+			lat => $location->[1]
+		};
+
+		bless $self, $class;
+
+		return $self;
+	}
+
+	sub lon($self) {
+		return $self->{lon};
+	}
+
+	sub lat($self) {
+		return $self->{lat};
+	}
+
+	sub equal($self, $other) {
+		return $self->lat() eq $other->lat() &&
+			$self->lon() eq $other->lon();
+	}
+1;
+
+package Route::Waypoint;
 	use strict;
 	no warnings "experimental::signatures";
 	use feature 'signatures';
@@ -11,12 +42,47 @@ package Route;
 		return $route;
 	}
 
+	sub distance($self) {
+		return $self->{distance};
+	}
+
+	sub location($self) {
+		return new Route::Waypoint::Location($self->{location});
+	}
+1;
+
+package Route;
+	use strict;
+	no warnings "experimental::signatures";
+	use feature 'signatures';
+	use Data::Dumper;
+
+	sub new($class, $route, $waypoints) {
+		bless $route, $class;
+
+		$route->{waypoints}=[ map { new Route::Waypoint($_) } @{$waypoints} ];
+
+		return $route;
+	}
+
 	sub duration($self) {
 		return $self->{duration}*1;
 	}
 
 	sub distance($self) {
 		return $self->{distance}*1;
+	}
+
+	sub waypoints($self) {
+		return $self->{waypoints};
+	}
+
+	sub waypoint_start($self) {
+		return $self->{waypoints}[0];
+	}
+
+	sub waypoint_end($self) {
+		return $self->{waypoints}[1];
 	}
 1;
 
@@ -47,27 +113,23 @@ sub calcroute($ua, $uribase, $osrmi, $profile, $lng1, $lat1, $lng2, $lat2) {
 	my $response=$ua->get($uri);
 
 	if (!$response->is_success) {
-		die("Failed to get $uri");
+		printf("Failed to get %s\n", $uri);
+		return undef;
 	}
 
 	my $j=from_json($response->decoded_content);
 
-	return new Route($j->{routes}[0]);
-
-	my $geojson=$j->{routes}[0]{geometry};
-
-	$geojson->{properties}{instance}=$osrmi;
-	$geojson->{properties}{profile}=$profile;
-
-	return $j;
+	return new Route($j->{routes}[0], $j->{waypoints});
 }
 
 my ($opt, $usage) = describe_options(
 	'$Bin %o <some-arg>',
-	[ 'minx=s',	"Min X" ],
-	[ 'maxx=s',	"Max X"],
-	[ 'miny=s',	"Min Y" ],
-	[ 'maxy=s',	"Max Y" ],
+	[ 'minx=s',		"Min X" ],
+	[ 'maxx=s',		"Max X"],
+	[ 'miny=s',		"Min Y" ],
+	[ 'maxy=s',		"Max Y" ],
+	[ 'maxdistance=i',	"Max distance to road network at start and end", { default => 3000 } ],
+	[ 'sei',		"Start and End identical only" ],
 	[],
 	[ 'help',	"print usage message and exit", { shortcircuit => 1 } ],
 );
@@ -90,12 +152,35 @@ while(42) {
 	my $a=calcroute($ua, $uribase, "osrma", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
 	my $b=calcroute($ua, $uribase, "osrmb", "car", $p1->[0], $p1->[1], $p2->[0], $p2->[1]);
 
+	if (!defined($a) || !defined($b)) {
+		next;
+	}
+
 	if ($a->distance() ne $b->distance() && $a->duration() ne $b->duration) {
+
+		# Dont show as changed when distance to road network is larger
+		# than maxdistance. Most likely we are outside of our PBF file.
+		my @wp=grep { $_->distance() > $opt->maxdistance } @{$a->waypoints()};
+
+		if (scalar @wp > 0) {
+			next;
+		}
+
+		if ($opt->sei) {
+			if (!$a->waypoint_start()->location()->equal($b->waypoint_start()->location())) {
+				next;
+			}
+			if (!$a->waypoint_end()->location()->equal($b->waypoint_end()->location())) {
+				next;
+			}
+		}
 
 		printf("http://localhost:8080/?route=%f,%f,%f,%f\n",
 				$p1->[0], $p1->[1], $p2->[0], $p2->[1]);
 
 		printf("\tDistance diff: %f Duration diff: %f\n", 
 			$b->distance()-$a->distance(), $b->duration-$a->duration);
+
+
 	}
 }
