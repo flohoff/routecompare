@@ -12,6 +12,11 @@ preparesingle() {
 	PROFILEDIR=$(dirname ${PROFILE})
 	PROFILENAME=$(basename ${PROFILE})
 
+	if [ ! -f ${PROFILE} ]; then
+		echo Profile is not a file or does not exist
+		exit 1
+	fi
+
 	docker run --rm -t \
 		-v "${VOLUMENAME}:/data" \
 		-v "${PBF}:/data/latest.pbf" \
